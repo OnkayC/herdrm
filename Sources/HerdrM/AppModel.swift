@@ -450,7 +450,7 @@ final class AppModel: ObservableObject {
             let manifests = try await service.agentManifests()
             sessions[deviceID]?.attachmentCapabilities =
                 AgentAttachmentCapabilityRegistry(manifests: manifests)
-            let advertised = manifests.map(\.agent)
+            let advertised = HerdrService.launchableAgentKinds(from: manifests)
             if device(deviceID)?.isLocal == true {
                 let found = await service.installedAgents(
                     from: advertised,

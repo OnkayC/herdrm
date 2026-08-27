@@ -159,6 +159,20 @@ public actor HerdrService {
         ).manifests
     }
 
+    /// Kinds that `agent.start` accepts but `server.agent_manifests` does not
+    /// currently return. That endpoint describes screen-detection manifests,
+    /// so integration-driven agents such as OMP otherwise disappear from launchers.
+    public static func launchableAgentKinds(from manifests: [AgentManifestInfo]) -> [String] {
+        var kinds = manifests.map(\.agent)
+        guard !kinds.contains("omp") else { return kinds }
+        if let cline = kinds.firstIndex(of: "cline") {
+            kinds.insert("omp", at: kinds.index(after: cline))
+        } else {
+            kinds.append("omp")
+        }
+        return kinds
+    }
+
     /// The CLI binary a kind installs as (usually the kind itself). Cursor's
     /// installer also ships `agent`, which collides with too many other tools.
     public static func binaryName(for kind: String) -> String {

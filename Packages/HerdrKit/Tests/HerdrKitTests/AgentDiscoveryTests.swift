@@ -3,6 +3,30 @@ import XCTest
 @testable import HerdrKit
 
 final class AgentDiscoveryTests: XCTestCase {
+    func testLaunchableKindsIncludesManifestlessOMPInCanonicalOrder() throws {
+        let manifests = try JSONDecoder().decode(
+            [AgentManifestInfo].self,
+            from: Data(#"[{"agent":"pi"},{"agent":"cline"},{"agent":"opencode"}]"#.utf8)
+        )
+
+        XCTAssertEqual(
+            HerdrService.launchableAgentKinds(from: manifests),
+            ["pi", "cline", "omp", "opencode"]
+        )
+    }
+
+    func testLaunchableKindsDoesNotDuplicateAdvertisedOMP() throws {
+        let manifests = try JSONDecoder().decode(
+            [AgentManifestInfo].self,
+            from: Data(#"[{"agent":"cline"},{"agent":"omp"},{"agent":"opencode"}]"#.utf8)
+        )
+
+        XCTAssertEqual(
+            HerdrService.launchableAgentKinds(from: manifests),
+            ["cline", "omp", "opencode"]
+        )
+    }
+
     func testRemotePathExportFindsNVMAndGrokBinaries() throws {
         let home = FileManager.default.temporaryDirectory
             .appendingPathComponent("herdrm-discovery-\(UUID().uuidString)", isDirectory: true)

@@ -60,6 +60,7 @@ enum BrandIconLoader {
         let map: [String: String] = [
             "claude": "claude", "claude-code": "claude",
             "codex": "codex",
+            "omp": "pi",
             "grok": "grok",
             "cursor": "cursor", "cursor-agent": "cursor",
             "opencode": "opencode",

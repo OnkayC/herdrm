@@ -15,6 +15,9 @@ the Sparkle update description — a release without a section here fails CI.
 - Remote terminal attaches now inherit the captured shell environment, so
   OpenSSH keeps the user's `PATH` and `SSH_AUTH_SOCK` when evaluating SSH
   configuration and agent-backed identities.
+- The New Agent picker now includes OMP. Herdr accepts `omp` as an
+  `agent.start` kind but does not publish it through the screen-detection
+  manifest list that herdrm uses to build the picker.
 
 ## [0.5.1] - 2026-08-27
 
