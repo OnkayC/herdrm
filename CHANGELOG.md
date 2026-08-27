@@ -11,6 +11,11 @@ the Sparkle update description — a release without a section here fails CI.
 - Standalone terminals can now open a local login shell or connect to any
   configured device over SSH.
 
+### Fixed
+- Remote terminal attaches now inherit the captured shell environment, so
+  OpenSSH keeps the user's `PATH` and `SSH_AUTH_SOCK` when evaluating SSH
+  configuration and agent-backed identities.
+
 ## [0.5.1] - 2026-08-27
 
 ### Added

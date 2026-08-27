@@ -128,6 +128,22 @@ final class AttachBinarySelectionTests: XCTestCase {
         XCTAssertTrue(remote.args.contains("StrictHostKeyChecking=accept-new"))
         XCTAssertTrue(remote.args.contains("ServerAliveInterval=15"))
         XCTAssertEqual(remote.args.last, "ssh://user@example.test:2222")
+        XCTAssertEqual(
+            remote.environment["HOME"],
+            ProcessInfo.processInfo.environment["HOME"],
+            "standalone SSH must inherit the local environment used by OpenSSH"
+        )
+        XCTAssertTrue(
+            remote.environment["PATH"]?.contains("/opt/homebrew/bin") == true,
+            "standalone SSH must expose Match exec helpers installed by Homebrew"
+        )
+        if let agentSocket = ProcessInfo.processInfo.environment["SSH_AUTH_SOCK"] {
+            XCTAssertEqual(
+                remote.environment["SSH_AUTH_SOCK"], agentSocket,
+                "standalone SSH must preserve access to the caller's SSH agent"
+            )
+        }
+        XCTAssertNil(remote.environment["TERM"], "SwiftTerm owns TERM")
     }
 
     func testKnownServerVersionProbesForAnExactMatch() {
@@ -161,6 +177,21 @@ final class AttachBinarySelectionTests: XCTestCase {
         // The whole script must run under sh on the far side, not the login shell.
         XCTAssertTrue(remote.args.last?.hasPrefix("exec /bin/sh -c '") == true)
         XCTAssertTrue(remote.args.last?.contains("export PATH=") == true)
+        XCTAssertEqual(
+            remote.environment["HOME"],
+            ProcessInfo.processInfo.environment["HOME"],
+            "remote attach must inherit the local environment used by OpenSSH"
+        )
+        XCTAssertTrue(
+            remote.environment["PATH"]?.contains("/opt/homebrew/bin") == true,
+            "remote attach must expose Match exec helpers installed by Homebrew"
+        )
+        if let agentSocket = ProcessInfo.processInfo.environment["SSH_AUTH_SOCK"] {
+            XCTAssertEqual(
+                remote.environment["SSH_AUTH_SOCK"], agentSocket,
+                "remote attach must preserve access to the caller's SSH agent"
+            )
+        }
     }
 }
 

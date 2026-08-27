@@ -530,6 +530,21 @@ public actor HerdrService {
 
     // MARK: - Terminal attach
 
+    /// OpenSSH needs the user's shell environment for Match exec helpers and
+    /// agent-backed identities. SwiftTerm supplies terminal-specific values later.
+    static func remoteTerminalEnvironment(
+        authentication: SSHAuthenticationConfiguration
+    ) -> [String: String] {
+        var environment = (ShellEnvironment.cached ?? .empty).launchEnvironment(binary: nil)
+        environment.merge(authentication.environment) { _, authenticationValue in
+            authenticationValue
+        }
+        environment.removeValue(forKey: "TERM")
+        environment.removeValue(forKey: "COLUMNS")
+        environment.removeValue(forKey: "LINES")
+        return environment
+    }
+
     /// The command for a standalone interactive shell on this device.
     public nonisolated func terminalCommand() -> TerminalCommand {
         switch device.kind {
@@ -542,6 +557,7 @@ public actor HerdrService {
             )
         case .ssh(let target):
             let authentication = SSHTunnel.authenticationConfiguration(for: device.id)
+            let environment = Self.remoteTerminalEnvironment(authentication: authentication)
             return TerminalCommand(
                 executable: "/usr/bin/ssh",
                 args: ["-tt"] + authentication.arguments + [
@@ -551,7 +567,7 @@ public actor HerdrService {
                     "-o", "ServerAliveCountMax=3",
                     SSHTunnel.sshDestination(target),
                 ],
-                environment: authentication.environment,
+                environment: environment,
                 authorizationID: authentication.authorizationID
             )
         }
@@ -607,6 +623,7 @@ public actor HerdrService {
                 + "exec \"$hb\" agent attach '\(paneID)' --takeover"
             let remote = "exec /bin/sh -c \(Self.shellQuoted(script))"
             let authentication = SSHTunnel.authenticationConfiguration(for: device.id)
+            let environment = Self.remoteTerminalEnvironment(authentication: authentication)
             return TerminalCommand(
                 executable: "/usr/bin/ssh",
                 args: ["-tt"] + authentication.arguments + [
@@ -619,7 +636,7 @@ public actor HerdrService {
                     "-o", "ServerAliveCountMax=3",
                     SSHTunnel.sshDestination(target), remote,
                 ],
-                environment: authentication.environment,
+                environment: environment,
                 authorizationID: authentication.authorizationID
             )
         }
